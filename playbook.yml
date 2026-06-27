@@ -3,5 +3,6 @@
   hosts: vps
   become: true
   roles:
+    - base
     - nftables
     - dev_tools

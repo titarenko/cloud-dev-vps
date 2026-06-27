@@ -21,6 +21,7 @@ Edit `inventory.ini` with the VPS host and `group_vars/all.yml` for `dev_user` a
 
 ## Structure
 
+- `roles/base/` — full package upgrade (`apt full-upgrade`), installs htop, gdu, curl, git
 - `roles/nftables/` — installs nftables, deploys config from template, enables service
 - `roles/dev_tools/` — installs uv, nvm, Node.js LTS, pnpm, Claude Code; deploys `add-repo` script
 - `roles/dev_tools/templates/add-repo.j2` — templated with `github_username` from vars

@@ -46,7 +46,7 @@
     npm install -g pnpm
   args:
     executable: /bin/bash
-    creates: "/home/{{ dev_user }}/.nvm/versions/node"
+    creates: "/home/{{ dev_user }}/.local/share/pnpm"
 
 - name: Install Claude Code
   become_user: "{{ dev_user }}"
@@ -55,6 +55,14 @@
     npm install -g @anthropic-ai/claude-code
   args:
     executable: /bin/bash
+
+- name: Ensure ~/.claude exists
+  file:
+    path: "/home/{{ dev_user }}/.claude"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0700"
 
 - name: Configure Claude Code bypass permissions
   become_user: "{{ dev_user }}"

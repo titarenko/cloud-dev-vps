@@ -1,0 +1,15 @@
+---
+- name: Update apt cache and upgrade all packages
+  apt:
+    update_cache: true
+    upgrade: full
+    cache_valid_time: 0
+
+- name: Install base packages
+  apt:
+    name:
+      - htop
+      - gdu
+      - curl
+      - git
+    state: present
