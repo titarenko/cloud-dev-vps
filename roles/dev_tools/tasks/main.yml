@@ -1,0 +1,84 @@
+---
+- name: Create dev user
+  user:
+    name: "{{ dev_user }}"
+    shell: /bin/bash
+    create_home: true
+    groups: sudo
+    append: true
+
+- name: Ensure ~/bin exists
+  file:
+    path: "/home/{{ dev_user }}/bin"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+
+- name: Install uv
+  become_user: "{{ dev_user }}"
+  shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.local/bin/uv"
+
+- name: Install nvm
+  become_user: "{{ dev_user }}"
+  shell: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.nvm/nvm.sh"
+
+- name: Install latest LTS Node.js via nvm
+  become_user: "{{ dev_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    nvm install --lts
+    nvm alias default node
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.nvm/alias/default"
+
+- name: Install pnpm
+  become_user: "{{ dev_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    npm install -g pnpm
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.nvm/versions/node"
+
+- name: Install Claude Code
+  become_user: "{{ dev_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    npm install -g @anthropic-ai/claude-code
+  args:
+    executable: /bin/bash
+
+- name: Configure Claude Code bypass permissions
+  become_user: "{{ dev_user }}"
+  copy:
+    dest: "/home/{{ dev_user }}/.claude/settings.json"
+    content: |
+      {
+        "dangerouslySkipPermissions": true
+      }
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0600"
+
+- name: Ensure ~/bin is on PATH
+  become_user: "{{ dev_user }}"
+  lineinfile:
+    path: "/home/{{ dev_user }}/.bashrc"
+    line: 'export PATH="$HOME/bin:$PATH"'
+    create: true
+
+- name: Deploy add-repo script
+  template:
+    src: add-repo.j2
+    dest: "/home/{{ dev_user }}/bin/add-repo"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"

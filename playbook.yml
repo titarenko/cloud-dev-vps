@@ -1,0 +1,7 @@
+---
+- name: Provision cloud dev VPS
+  hosts: vps
+  become: true
+  roles:
+    - nftables
+    - dev_tools

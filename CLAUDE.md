@@ -14,11 +14,19 @@ Ansible playbook that provisions a cloud VPS for development. Key things it sets
 ## Running the playbook
 
 ```bash
-ansible-playbook -i <inventory> site.yml
+ansible-playbook playbook.yml
 ```
+
+Edit `inventory.ini` with the VPS host and `group_vars/all.yml` for `dev_user` and `github_username`.
+
+## Structure
+
+- `roles/nftables/` — installs nftables, deploys config from template, enables service
+- `roles/dev_tools/` — installs uv, nvm, Node.js LTS, pnpm, Claude Code; deploys `add-repo` script
+- `roles/dev_tools/templates/add-repo.j2` — templated with `github_username` from vars
 
 ## Conventions
 
-- Target user/host variables belong in inventory or `group_vars/`
-- Firewall rules live in the nftables role; the baseline policy is deny-all inbound except SSH
-- The `add-repo` script is interactive (it pauses for the user to add the deploy key on GitHub before cloning)
+- `become: true` at play level for system tasks; `become_user: "{{ dev_user }}"` for user-level installs
+- nvm-based installs source `~/.nvm/nvm.sh` in each shell task since nvm is not on the system PATH
+- Claude Code bypass permissions is set via `~/.claude/settings.json`; the `add-repo` script is interactive and pauses for the GitHub deploy key step
