@@ -28,3 +28,13 @@
     group: root
     mode: "0644"
   notify: reload sshd
+
+- name: Stop sshd from accepting client locale env vars
+  # AcceptEnv is additive and cannot be reset from a drop-in, so neutralize
+  # the default "AcceptEnv LANG LC_*" in the main config. This prevents
+  # macOS Terminal's malformed LC_CTYPE=UTF-8 from triggering setlocale warnings.
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^(\s*AcceptEnv\s+.*)$'
+    replace: '#\1'
+  notify: reload sshd
