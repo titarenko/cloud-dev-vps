@@ -88,6 +88,7 @@
     name: user.name
     value: "{{ git_user_name }}"
     scope: global
+  tags: git
 
 - name: Configure git user email
   become_user: "{{ dev_user }}"
@@ -95,6 +96,20 @@
     name: user.email
     value: "{{ git_user_email }}"
     scope: global
+  tags: git
+
+- name: Configure git aliases
+  become_user: "{{ dev_user }}"
+  community.general.git_config:
+    name: "alias.{{ item.alias }}"
+    value: "{{ item.command }}"
+    scope: global
+  tags: git
+  loop:
+    - alias: st
+      command: status
+    - alias: co
+      command: checkout
 
 - name: Deploy add-repo script
   template:
