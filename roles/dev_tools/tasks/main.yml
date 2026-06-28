@@ -39,25 +39,18 @@
     executable: /bin/bash
     creates: "/home/{{ dev_user }}/.nvm/alias/default"
 
-- name: Install pnpm
+- name: Install global npm packages
   become_user: "{{ dev_user }}"
   shell: |
     source ~/.nvm/nvm.sh
-    npm list -g --depth=0 pnpm | grep -q pnpm || { npm install -g pnpm; echo changed; }
+    npm list -g --depth=0 {{ item }} | grep -q {{ item }} || { npm install -g {{ item }}; echo changed; }
   args:
     executable: /bin/bash
-  register: _pnpm
-  changed_when: "'changed' in _pnpm.stdout"
-
-- name: Install Claude Code
-  become_user: "{{ dev_user }}"
-  shell: |
-    source ~/.nvm/nvm.sh
-    npm list -g --depth=0 @anthropic-ai/claude-code | grep -q claude-code || { npm install -g @anthropic-ai/claude-code; echo changed; }
-  args:
-    executable: /bin/bash
-  register: _claude_code
-  changed_when: "'changed' in _claude_code.stdout"
+  register: _npm_globals
+  changed_when: "'changed' in _npm_globals.stdout"
+  loop:
+    - pnpm
+    - "@anthropic-ai/claude-code"
 
 - name: Ensure ~/.claude exists
   file:
