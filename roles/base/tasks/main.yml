@@ -12,6 +12,7 @@
       - gdu
       - curl
       - git
+      - tmux
     state: present
 
 - name: Deploy SSH hardening config
