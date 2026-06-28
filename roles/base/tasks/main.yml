@@ -13,3 +13,17 @@
       - curl
       - git
     state: present
+
+- name: Deploy SSH hardening config
+  copy:
+    dest: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin prohibit-password
+      PubkeyAuthentication yes
+      AuthenticationMethods publickey
+      KbdInteractiveAuthentication no
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload sshd
