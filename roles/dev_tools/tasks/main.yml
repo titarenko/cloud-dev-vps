@@ -43,18 +43,21 @@
   become_user: "{{ dev_user }}"
   shell: |
     source ~/.nvm/nvm.sh
-    npm install -g pnpm
+    npm list -g --depth=0 pnpm | grep -q pnpm || { npm install -g pnpm; echo changed; }
   args:
     executable: /bin/bash
-    creates: "/home/{{ dev_user }}/.local/share/pnpm"
+  register: _pnpm
+  changed_when: "'changed' in _pnpm.stdout"
 
 - name: Install Claude Code
   become_user: "{{ dev_user }}"
   shell: |
     source ~/.nvm/nvm.sh
-    npm install -g @anthropic-ai/claude-code
+    npm list -g --depth=0 @anthropic-ai/claude-code | grep -q claude-code || { npm install -g @anthropic-ai/claude-code; echo changed; }
   args:
     executable: /bin/bash
+  register: _claude_code
+  changed_when: "'changed' in _claude_code.stdout"
 
 - name: Ensure ~/.claude exists
   file:
