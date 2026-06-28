@@ -82,6 +82,20 @@
     line: 'export PATH="$HOME/bin:$PATH"'
     create: true
 
+- name: Configure git user name
+  become_user: "{{ dev_user }}"
+  community.general.git_config:
+    name: user.name
+    value: "{{ git_user_name }}"
+    scope: global
+
+- name: Configure git user email
+  become_user: "{{ dev_user }}"
+  community.general.git_config:
+    name: user.email
+    value: "{{ git_user_email }}"
+    scope: global
+
 - name: Deploy add-repo script
   template:
     src: add-repo.j2
