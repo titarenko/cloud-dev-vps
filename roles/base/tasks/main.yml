@@ -13,6 +13,7 @@
       - curl
       - git
       - tmux
+      - rg
     state: present
 
 - name: Deploy SSH hardening config
