@@ -13,7 +13,7 @@
       - curl
       - git
       - tmux
-      - rg
+      - ripgrep
     state: present
 
 - name: Deploy SSH hardening config
