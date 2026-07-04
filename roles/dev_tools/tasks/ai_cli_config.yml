@@ -1,0 +1,51 @@
+---
+- name: Ensure ~/.claude exists
+  file:
+    path: "/home/{{ dev_user }}/.claude"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0700"
+
+- name: Configure Claude Code bypass permissions
+  become_user: "{{ dev_user }}"
+  copy:
+    dest: "/home/{{ dev_user }}/.claude/settings.json"
+    content: |
+      {
+        "theme": "dark",
+        "permissions": {
+          "defaultMode": "bypassPermissions"
+        }
+      }
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0600"
+
+- name: Ensure ~/.gemini exists
+  file:
+    path: "/home/{{ dev_user }}/.gemini"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0700"
+
+- name: Ensure ~/.gemini/antigravity-cli exists
+  file:
+    path: "/home/{{ dev_user }}/.gemini/antigravity-cli"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0700"
+
+- name: Configure Antigravity CLI bypass permissions
+  become_user: "{{ dev_user }}"
+  copy:
+    dest: "/home/{{ dev_user }}/.gemini/antigravity-cli/settings.json"
+    content: |
+      {
+        "toolPermission": "always-proceed"
+      }
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0600"

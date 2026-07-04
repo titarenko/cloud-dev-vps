@@ -1,0 +1,44 @@
+---
+- name: Install uv
+  become_user: "{{ dev_user }}"
+  shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.local/bin/uv"
+
+- name: Install antigravity CLI (agy)
+  become_user: "{{ dev_user }}"
+  shell: curl -fsSL https://antigravity.google/cli/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.local/bin/agy"
+
+- name: Install nvm
+  become_user: "{{ dev_user }}"
+  shell: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.nvm/nvm.sh"
+
+- name: Install latest LTS Node.js via nvm
+  become_user: "{{ dev_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    nvm install --lts
+    nvm alias default node
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ dev_user }}/.nvm/alias/default"
+
+- name: Install global npm packages
+  become_user: "{{ dev_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    npm list -g --depth=0 {{ item }} | grep -q {{ item }} || { npm install -g {{ item }}; echo changed; }
+  args:
+    executable: /bin/bash
+  register: _npm_globals
+  changed_when: "'changed' in _npm_globals.stdout"
+  loop:
+    - pnpm
+    - "@anthropic-ai/claude-code"

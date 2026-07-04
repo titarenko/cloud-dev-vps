@@ -1,0 +1,8 @@
+---
+- name: Deploy add-repo script
+  template:
+    src: add-repo.j2
+    dest: "/home/{{ dev_user }}/bin/add-repo"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"

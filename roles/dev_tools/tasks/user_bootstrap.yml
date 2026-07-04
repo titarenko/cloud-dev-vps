@@ -1,0 +1,53 @@
+---
+- name: Create dev user
+  user:
+    name: "{{ dev_user }}"
+    shell: /bin/bash
+    create_home: true
+    groups: sudo
+    append: true
+
+- name: Read passwd entry for dev user
+  getent:
+    database: passwd
+    key: "{{ dev_user }}"
+
+- name: Cache dev user UID
+  set_fact:
+    dev_user_uid: "{{ ansible_facts.getent_passwd[dev_user][1] }}"
+
+- name: Resolve Ansible connection user
+  set_fact:
+    ansible_connection_user: "{{ ansible_user | default(ansible_ssh_user, true) | default(ansible_user_id, true) }}"
+
+- name: Read passwd entry for Ansible connection user
+  getent:
+    database: passwd
+    key: "{{ ansible_connection_user }}"
+
+- name: Check Ansible user's authorized_keys
+  stat:
+    path: "{{ ansible_facts.getent_passwd[ansible_connection_user][4] }}/.ssh/authorized_keys"
+  register: ansible_user_authorized_keys
+
+- name: Read Ansible user's authorized_keys
+  slurp:
+    src: "{{ ansible_facts.getent_passwd[ansible_connection_user][4] }}/.ssh/authorized_keys"
+  register: ansible_user_authorized_keys_content
+  when: ansible_user_authorized_keys.stat.exists
+
+- name: Append Ansible user's SSH keys to dev user
+  authorized_key:
+    user: "{{ dev_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ (ansible_user_authorized_keys_content.content | b64decode).splitlines() | map('trim') | reject('equalto', '') | reject('match', '^#') | list }}"
+  when: ansible_user_authorized_keys.stat.exists
+
+- name: Ensure ~/bin exists
+  file:
+    path: "/home/{{ dev_user }}/bin"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
