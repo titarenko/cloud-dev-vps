@@ -7,6 +7,15 @@
     groups: sudo
     append: true
 
+- name: Read passwd entry for dev user
+  getent:
+    database: passwd
+    key: "{{ dev_user }}"
+
+- name: Cache dev user UID
+  set_fact:
+    dev_user_uid: "{{ ansible_facts.getent_passwd[dev_user][1] }}"
+
 - name: Resolve Ansible connection user
   set_fact:
     ansible_connection_user: "{{ ansible_user | default(ansible_ssh_user, true) | default(ansible_user_id, true) }}"
@@ -86,6 +95,74 @@
   loop:
     - pnpm
     - "@anthropic-ai/claude-code"
+
+- name: Install rootless Docker prerequisites
+  apt:
+    name:
+      - uidmap
+      - dbus-user-session
+      - curl
+    state: present
+
+- name: Enable linger so dev user services survive logout
+  command: loginctl enable-linger {{ dev_user }}
+  changed_when: false
+
+- name: Load nf_tables kernel module for rootless Docker
+  modprobe:
+    name: nf_tables
+    state: present
+
+- name: Download Docker rootless install script
+  get_url:
+    url: https://get.docker.com/rootless
+    dest: /tmp/rootless-install.sh
+    mode: "0755"
+
+- name: Run Docker rootless install
+  become_user: "{{ dev_user }}"
+  shell: /tmp/rootless-install.sh
+  args:
+    creates: "/home/{{ dev_user }}/bin/dockerd-rootless.sh"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ dev_user_uid }}"
+    HOME: "/home/{{ dev_user }}"
+
+- name: Ensure Docker CLI plugin directory exists
+  become_user: "{{ dev_user }}"
+  file:
+    path: "/home/{{ dev_user }}/.docker/cli-plugins"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+
+- name: Install Docker Compose CLI plugin
+  become_user: "{{ dev_user }}"
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-{{ docker_compose_arch_map.get(ansible_facts['architecture'], ansible_facts['architecture']) }}"
+    dest: "/home/{{ dev_user }}/.docker/cli-plugins/docker-compose"
+    mode: "0755"
+
+- name: Enable and start rootless Docker user service
+  become_user: "{{ dev_user }}"
+  systemd:
+    name: docker
+    scope: user
+    state: started
+    enabled: true
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ dev_user_uid }}"
+
+- name: Export rootless Docker PATH and DOCKER_HOST in bashrc
+  become_user: "{{ dev_user }}"
+  blockinfile:
+    path: "/home/{{ dev_user }}/.bashrc"
+    marker: "# {mark} ansible rootless docker"
+    create: true
+    block: |
+      export PATH=/home/{{ dev_user }}/bin:$PATH
+      export DOCKER_HOST=unix:///run/user/{{ dev_user_uid }}/docker.sock
 
 - name: Ensure ~/.claude exists
   file:

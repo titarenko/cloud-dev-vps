@@ -1,0 +1,7 @@
+---
+docker_compose_version: v2.39.1
+docker_compose_arch_map:
+  x86_64: x86_64
+  aarch64: aarch64
+  arm64: aarch64
+  armv7l: armv7
