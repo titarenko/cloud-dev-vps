@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Ansible playbook that provisions a cloud VPS for development. Key things it sets up:
 
-- Claude Code (installed to run in bypass-permissions mode)
+- Claude Code and Antigravity CLI (both configured to run in bypass-permissions mode)
 - uv, nvm, latest stable Node.js via nvm, pnpm
 - SSH hardening: keys-only authentication, no password login, root login via keys only (`prohibit-password`)
 - nftables firewall: SSH allowed from everywhere with automatic brute-force protection (IPs rate-limited to 3 new connections/min, banned for 15 minutes with auto-expiry), all other inbound traffic blocked
@@ -41,4 +41,4 @@ SSH accepts **keys only** — no password authentication. Root login is allowed 
 
 - `become: true` at play level for system tasks; `become_user: "{{ dev_user }}"` for user-level installs
 - nvm-based installs source `~/.nvm/nvm.sh` in each shell task since nvm is not on the system PATH
-- Claude Code bypass permissions is set via `~/.claude/settings.json`; the `add-repo` script is interactive and pauses for the GitHub deploy key step
+- Claude Code bypass permissions is set via `~/.claude/settings.json`, and Antigravity CLI bypass permissions is set via `~/.gemini/antigravity-cli/settings.json`; the `add-repo` script is interactive and pauses for the GitHub deploy key step
