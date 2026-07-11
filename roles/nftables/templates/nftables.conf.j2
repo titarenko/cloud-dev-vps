@@ -28,9 +28,9 @@ table inet filter {
     ip saddr @ssh_brute4 drop
     ip6 saddr @ssh_brute6 drop
 
-    # New SSH connections: ban source IP for 15m if over 3/min (burst 5)
-    tcp dport 22 ct state new add @ssh_brute4 { ip saddr limit rate over 3/minute burst 5 packets } drop
-    tcp dport 22 ct state new add @ssh_brute6 { ip6 saddr limit rate over 3/minute burst 5 packets } drop
+    # New SSH connections: ban source IP for 15m if over 15/min (burst 30)
+    tcp dport 22 ct state new add @ssh_brute4 { ip saddr limit rate over 15/minute burst 30 packets } drop
+    tcp dport 22 ct state new add @ssh_brute6 { ip6 saddr limit rate over 15/minute burst 30 packets } drop
 
     tcp dport 22 accept
   }
