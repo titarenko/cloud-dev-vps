@@ -15,6 +15,7 @@
       - tmux
       - ripgrep
       - jq
+      - build-essential
     state: present
 
 - name: Deploy SSH hardening config
