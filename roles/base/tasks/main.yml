@@ -14,6 +14,7 @@
       - git
       - tmux
       - ripgrep
+      - jq
     state: present
 
 - name: Deploy SSH hardening config
